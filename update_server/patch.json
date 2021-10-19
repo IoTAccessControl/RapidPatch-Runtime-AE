@@ -1,0 +1,68 @@
+[
+	{
+		"alias": "dc1",
+		"type": 1,
+		"loc": 0,
+		"code": "dummy_cve1.bin"
+	}, 
+	{
+		"alias": "cve-10063",
+		"type": 1,
+		"loc": 0,
+		"code": "zephyr_cve_2020_10063.bin"
+	}, 
+	{
+		"alias": "cve-10021",
+		"type": 1,
+		"loc": 0,
+		"code": "zephyr_cve_2020_10021.bin"
+	}, 
+	{
+		"alias": "cve-10024",
+		"type": 1,
+		"loc": 0,
+		"code": "zephyr_cve_2020_10024.bin"
+	}, 
+	{
+		"alias": "cve-10028",
+		"type": 1,
+		"loc": 0,
+		"code": "zephyr_cve_2020_10028.bin"
+	}, 
+	{
+		"alias": "cve-10062",
+		"type": 1,
+		"loc": 0,
+		"code": "zephyr_cve_2020_10062.bin"
+	}, 
+	{
+		"alias": "cve-16524",
+		"type": 1,
+		"loc": 0,
+		"code": "zephyr_cve_2018_16524.bin"
+	}, 
+	{
+		"alias": "cve-16603",
+		"type": 1,
+		"loc": 0,
+		"code": "zephyr_cve_2018_16603.bin"
+	}, 
+	{
+		"alias": "cve-17443",
+		"type": 1,
+		"loc": 0,
+		"code": "zephyr_cve_2020_17443.bin"
+	}, 
+	{
+		"alias": "cve-17445",
+		"type": 1,
+		"loc": 0,
+		"code": "zephyr_cve_2020_17445.bin"
+	}, 
+	{
+		"alias": "z1",
+		"type": 2,
+		"loc": 12398,
+		"code": "zephyr_cve1.bin"
+	}
+]
