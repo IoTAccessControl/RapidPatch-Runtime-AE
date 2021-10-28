@@ -115,7 +115,9 @@ void init_patch_sys(void) {
 }
 
 void destroy_patch_context() {
-	arraymap_destroy(pctx.fpatch_list.fiexed_patches);
+	if (pctx.fpatch_list.fiexed_patches != NULL) {
+		arraymap_destroy(pctx.fpatch_list.fiexed_patches);
+	}
 
 	dynamic_patch *dp = pctx.dpatch_list.next, *next = NULL;
 	while (dp != NULL) {
