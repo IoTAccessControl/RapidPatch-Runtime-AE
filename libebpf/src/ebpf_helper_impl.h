@@ -31,19 +31,17 @@ static void iot_call_C_func2_noret(void *arg1, void *arg2) {
 }
 
 // static 
-static arraymap *amap;
+static arraymap amap;
+uint64_t dval;
 static void tmp_map_save_val(void *mp, uint64_t key, uint64_t val) {
 	if (mp == NULL) {
-		if (amap == NULL) {
-			amap = arraymap_new(5);
-		}
-		mp = amap;
+
 	}
-	arraymap_set(mp, key, val);
+	dval = val;
 }
 
 static uint64_t tmp_map_get_val(void *mp, uint64_t key) {
-	return arraymap_get(mp, key);
+	return dval;
 }
 
 void set_default_helpers(struct ebpf_vm *vm) {

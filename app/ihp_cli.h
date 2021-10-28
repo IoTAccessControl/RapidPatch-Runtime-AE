@@ -8,7 +8,8 @@ typedef enum patch_tests {
 	TEST_CLEAR,
 	TEST_EBPF,
 	TEST_SVR,
-	TEST_FIXED_PATCH_POINT,
+	TEST_CVE_2020_10062_VUL_FUNC,
+	TEST_LOAD_FIXED_PATCH_FOR_CVE_2020_10062,
 } run_test_t;
 
 // triggered by shell commands

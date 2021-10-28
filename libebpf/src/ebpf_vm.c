@@ -7,12 +7,9 @@
 #include "hotpatch/include/utils.h"
 #include "ebpf_helper_impl.h"
 
-#define MAX_ITERS 1296
-
 static ebpf_helper_env *g_helper_func = NULL;
 static ebpf_helper_env* use_default_helper_func();
 
-static bool iters_check(int pc);
 static bool bounds_check(const struct ebpf_vm *vm, void *addr, int size, const char *type, u16 cur_pc, void *mem, size_t mem_len, void *stack);
 
 ebpf_vm *init_ebpf_vm(const uint8_t *code, uint32_t code_len) {
@@ -517,18 +514,9 @@ u64 ebpf_vm_exec(const struct ebpf_vm *vm, void *mem, u32 mem_len) {
 		case EBPF_OP_EXIT:
 			return reg[0];
 		}
-		if (!iters_check(pc)) {
-			return false;
-		}
 	}
 
 	return ret;
-}
-
-bool iters_check(int pc) {
-	if (pc > MAX_ITERS) {
-		return false;
-	}
 }
 
 bool bounds_check(const struct ebpf_vm *vm, void *addr, int size, const char *type, u16 cur_pc, void *mem, size_t mem_len, void *stack) {

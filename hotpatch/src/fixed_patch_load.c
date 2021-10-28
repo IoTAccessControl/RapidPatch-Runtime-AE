@@ -57,7 +57,7 @@ static uint8_t zephyr_cve_10062[] = ""
 static struct local_patch patch_list[] = {
 	{"dummy_bug_function", 0x08002950, dummy_bug_function, sizeof(dummy_bug_function)},
 	{"zephyr_cve_2020_10063 attack_coap", 0x0000d0be, zephyr_cve_10063, sizeof(zephyr_cve_10063)},
-	{"zephyr_cve_2020_10062 dummy_MQTT_packet_length_decode_patch", 0x08002a2c, zephyr_cve_10062, sizeof(zephyr_cve_10062)},
+	{"zephyr_cve_2020_10062 dummy_MQTT_packet_length_decode_patch", 0x0800291c, zephyr_cve_10062, sizeof(zephyr_cve_10062)},
 };
 
 void setup_cve_list() {

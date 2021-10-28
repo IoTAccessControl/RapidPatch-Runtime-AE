@@ -199,7 +199,7 @@ void test_fixed_patch_point() {
 	profile_add_event("fixed patch");
 	// call_buggy_function();
 	call_dummy_buggy_MQTT_function();
-	profile_dump(0);
+	// profile_dump(0);
 }
 
 #endif
@@ -222,7 +222,7 @@ void dispatch_fixed_patch_point(uint32_t sp) {
 	uint32_t lr = *(uint32_t *) (sp + 4);
 	uint32_t addr = (lr - 4) & (~0x3);
 	ebpf_patch *patch = get_fixed_patch_by_lr(addr);
-	// DEBUG_LOG("Patch instruction num %d\n", patch->vm->num_insts);
+	DEBUG_LOG("Patch instruction num %d\n", patch->vm->num_insts);
 	uint64_t ret = 0;
 	DEBUG_LOG("try to get patch at: 0x%08x\n", addr);
 	fixed_stack_frame *args = (fixed_stack_frame *) sp;
@@ -232,14 +232,15 @@ void dispatch_fixed_patch_point(uint32_t sp) {
 		return;
 	} 
 	ret = run_ebpf_filter(patch, args, sizeof(fixed_stack_frame));
-	// DEBUG_LOG("ret:0x%08x\n", (uint32_t)ret);
+	DEBUG_LOG("ret:0x%08x\n", (uint32_t)ret);
 	uint32_t op = ret >> 32;
-	// DEBUG_LOG("op code:0x%08x \n", op);
+	DEBUG_LOG("op code:0x%08x \n", op);
 	uint32_t ret_code = ret & 0x00000000ffffffff;
 	// DEBUG_LOG("ret code:0x%08x \n", ret_code);
 	//op = FILTER_DROP;
 	if (op == FILTER_DROP) {
 		*(volatile uint32_t *) &(args->r0_1) = 0; 
+		TEST_LOG("FILTER_DROP\n");
 		return;
 	} else if (op == FILTER_REDIRECT) {
 		*(volatile uint32_t *) (args->lr) = ret_code;
@@ -325,10 +326,9 @@ static void call_dummy_buggy_MQTT_function() {
 
 	DEBUG_LOG("Decoded MQTT packet length is %d\n", pkt_length);
 
-	DEBUG_LOG("Bug function return %d ", ret);
-	if (ret != 0) {
-		DEBUG_LOG("is still vulnerable!\n\n");
+	if (pkt_length != 0) {
+		DEBUG_LOG("The buggy function is still vulnerable!\n");
 	} else {
-		DEBUG_LOG("is fixed!\n");
+		DEBUG_LOG("The buggy function is fixed!\n");
 	}
 }

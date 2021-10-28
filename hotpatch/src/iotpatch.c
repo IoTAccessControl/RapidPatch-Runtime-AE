@@ -114,13 +114,13 @@ void init_patch_sys(void) {
 	ctx_init = true;
 }
 
-void destory_patch_context() {
+void destroy_patch_context() {
 	arraymap_destroy(pctx.fpatch_list.fiexed_patches);
 
 	dynamic_patch *dp = pctx.dpatch_list.next, *next = NULL;
 	while (dp != NULL) {
 		next = dp->next;
-		destory_ebpf_patch(dp->patch);
+		destroy_ebpf_patch(dp->patch);
 		ebpf_free(dp);
 		dp = next;
 	}
@@ -133,7 +133,7 @@ void destory_patch_context() {
 	clear_all_hw_bkpt();
 }
 
-void destory_ebpf_patch(ebpf_patch *patch) {
+void destroy_ebpf_patch(ebpf_patch *patch) {
 	if (patch != NULL) {
 		ebpf_free(patch->desc);
 		ebpf_free(patch->vm);

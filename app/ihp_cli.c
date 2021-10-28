@@ -173,6 +173,7 @@ static void reset_patch() {
 #ifndef LINUX_TEST
 	show_hw_bkpt();
 	clear_all_hw_bkpt();
+	destroy_patch_context();
 #endif
 }
 
@@ -182,11 +183,16 @@ Fixed patch point test
 */
 static void run_eva_test() {
 	// test_dummy_cve();
+	#ifndef DEV_QEMU
 	run_ebpf_test();
+	#endif
+}
+
+static void run_load_fixed_patch_point_test() {
+	load_local_fixed_patch(2);
 }
 
 static void run_fixed_patch_point_test() {
-	load_local_fixed_patch(2);
 	test_fixed_patch_point();
 }
 
@@ -203,7 +209,8 @@ static struct cli_cmd cmds[] = {
 	{TEST_CLEAR, reset_patch, "Clear all bpkt and patch"},
 	{TEST_EBPF, run_eva_test, "Run eva test"},
 	{TEST_SVR, start_patch_service, "Start patch service"},
-	{TEST_FIXED_PATCH_POINT, run_fixed_patch_point_test, "Start testing fixed patch point"},
+	{TEST_CVE_2020_10062_VUL_FUNC, run_fixed_patch_point_test, "Invoke the vulnerable function for CVE-2020-10062"},
+	{TEST_LOAD_FIXED_PATCH_FOR_CVE_2020_10062, run_load_fixed_patch_point_test, "Load patch at the fixed patch point for CVE-2020-10062"}
 };
 
 static void cli_print_help() {
