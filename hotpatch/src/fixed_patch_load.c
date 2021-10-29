@@ -88,8 +88,9 @@ void load_local_fixed_patch(int pid) {
 		_desc = ebpf_calloc(1, sizeof(patch_desc));
 		_patch = ebpf_calloc(1, sizeof(ebpf_patch));
 		is_init = true;
-		init_patch_sys();
 	}
+
+	init_patch_sys();
 
 	DEBUG_LOG("start to load patch: %d\n", pid);
 	struct local_patch *pt = &patch_list[pid];
