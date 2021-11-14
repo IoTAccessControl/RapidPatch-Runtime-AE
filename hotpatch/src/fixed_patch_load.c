@@ -73,7 +73,7 @@ static char AMNESIA33_cve_2020_17445[] = ""
 static struct local_patch patch_list[] = {
 	{"dummy_bug_function", 0x08002950, dummy_bug_function, sizeof(dummy_bug_function)},
 	{"zephyr_cve_2020_10063 attack_coap", 0x0000d0be, zephyr_cve_10063, sizeof(zephyr_cve_10063)},
-	{"zephyr_cve_2020_10062 dummy_MQTT_packet_length_decode_patch", 0x0800291c, zephyr_cve_10062, sizeof(zephyr_cve_10062)},
+	{"zephyr_cve_2020_10062 dummy_MQTT_packet_length_decode_patch", 0x08002948, zephyr_cve_10062, sizeof(zephyr_cve_10062)},
 	{"AMNESIA33_cve_2020_17445 dummy_pico_ipv6_process_destopt_patch", 0x08002aa4, AMNESIA33_cve_2020_17445, sizeof(AMNESIA33_cve_2020_17445)},
 };
 
