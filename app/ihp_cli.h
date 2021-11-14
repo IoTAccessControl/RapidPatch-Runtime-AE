@@ -10,6 +10,7 @@ typedef enum patch_tests {
 	TEST_SVR,
 	TEST_CVE_2020_10062_VUL_FUNC,
 	TEST_LOAD_FIXED_PATCH_FOR_CVE_2020_10062,
+	TEST_CVE_2020_17445_VUL_FUNC,
 } run_test_t;
 
 // triggered by shell commands
