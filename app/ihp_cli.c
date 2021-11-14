@@ -216,7 +216,7 @@ static struct cli_cmd cmds[] = {
 	{TEST_SVR, start_patch_service, "Start patch service"},
 	{TEST_CVE_2020_10062_VUL_FUNC, run_fixed_patch_point_test, "Invoke the vulnerable function for CVE-2020-10062"},
 	{TEST_LOAD_FIXED_PATCH_FOR_CVE_2020_10062, run_load_fixed_patch_point_test, "Load patch at the fixed patch point for CVE-2020-10062"},
-	{TEST_CVE_2020_17445_VUL_FUNC, run_unbounded_loop_test, "Invoke the vulnerable function for CVE-2020-17445"},
+	{TEST_CVE_2020_17445_VUL_FUNC, run_unbounded_loop_test, "Invoke the vulnerable function for CVE-2020-17445 (Unbounded loop test)"},
 };
 
 static void cli_print_help() {
