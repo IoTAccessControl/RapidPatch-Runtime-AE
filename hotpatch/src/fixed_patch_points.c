@@ -58,15 +58,15 @@ __asm int fixed_patch_point_hanlder(void) {
 // TODO: inline the fixed_patch_point_handler
 __NAKE int fixed_patch_point_hanlder(void) {
 	// __asm("nop");
-	__asm volatile("PUSH {r0, lr}");
+	__asm volatile("PUSH {r0, r1, r2, lr}");
 	__asm volatile("MRS r0, CONTROL");
 	__asm volatile("TST r0, #2");
 	__asm volatile("ITE EQ");
-	__asm volatile("MRSEQ r0, MSP");
-	__asm volatile("MRSNE r0, PSP");
+	__asm volatile("MRSEQ r0, MSP"); //
+	__asm volatile("MRSNE r0, PSP"); //
 //	asm volatile("ADD r0, #8"); // set to origin sp (push {r0, lr})
 	__asm volatile("BL dispatch_fixed_patch_point");
-	__asm volatile("POP {r0, pc}");
+	__asm volatile("POP {r0, r1, r2, pc}");
 //	asm volatile("ADDS r7, #16");
 //	asm volatile("MOV  sp, r7");
 //	asm volatile("pop {r7, pc}");
