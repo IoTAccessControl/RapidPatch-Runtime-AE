@@ -55,7 +55,7 @@ void log_print_porting(const char *fmt, va_list *args) {
 
 #endif
 
-#ifdef STM32L475_NO_OS
+#if defined(STM32L475_NO_OS) || defined(STM32F407_NO_OS)
 #include "usart.h"
 #include "delay.h"
 

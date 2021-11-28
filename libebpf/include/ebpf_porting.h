@@ -66,7 +66,7 @@ endian
 
 #endif // end ZEPHYR_OS
 
-#ifdef STM32L475_NO_OS
+#if defined(STM32L475_NO_OS) || defined(STM32F407_NO_OS)
 #include "malloc.h"
 #include <string.h>
 
