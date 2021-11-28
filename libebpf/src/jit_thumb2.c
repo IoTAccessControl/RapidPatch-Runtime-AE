@@ -737,65 +737,6 @@ static void _emit_jump(jit_state *state, s32 jmp_off, s8 op) {
     }
 }
 
-static void _emit_jump_sfi(jit_state *state, s32 jmp_off, s8 op) {
-    if (jmp_off < 0) {
-        _emit_add_imm(state, ARM_R9, ARM_R9, 1);
-        emit_mov_imm(state, ARM_R6, 32);
-        _emit_cmp_reg(state, ARM_R9, ARM_R6);
-        _emit_b_cond(state, state->exit_off, COND_NE);
-    }
-    switch (op)
-    {
-    case EBPF_JNE: // != 
-    case EBPF_JSET: // &
-        // emit4()
-        _emit_b_cond(state, jmp_off, COND_NE);
-        break;
-
-    case EBPF_JEQ:
-        // DEBUG_LOG("_emit_b_cond: %d %d\n", jmp_off, COND_EQ);
-        _emit_b_cond(state, jmp_off, COND_EQ);
-        break;
-
-    case EBPF_JGT:
-        _emit_b_cond(state, jmp_off, COND_HI);
-        break;
-    case EBPF_JGE:
-		// _emit(ARM_COND_CS, ARM_B(jmp_offset), ctx);
-        _emit_b_cond(state, jmp_off, COND_CS);
-        break;
-    case EBPF_JSGT:
-        // _emit(ARM_COND_LT, ARM_B(jmp_offset), ctx);
-        // DEBUG_LOG("------>EBPF_JSGT: %d idx:%d\n", jmp_off, state->idx);
-        _emit_b_cond(state, jmp_off, COND_LT);
-        //  DEBUG_LOG("END------>EBPF_JSGT: %d idx:%d\n", jmp_off, state->idx);
-        break;
-    case EBPF_JSGE:
-        // _emit(ARM_COND_GE, ARM_B(jmp_offset), ctx);
-        _emit_b_cond(state, jmp_off, COND_GE);
-        break;
-    case EBPF_JLE:
-        // _emit(ARM_COND_LS, ARM_B(jmp_offset), ctx);
-        _emit_b_cond(state, jmp_off, COND_LS);
-        break;
-    case EBPF_JLT:
-        // _emit(ARM_COND_CC, ARM_B(jmp_offset), ctx);
-        _emit_b_cond(state, jmp_off, COND_CC);
-        break;
-    case EBPF_JSLT:
-        // _emit(ARM_COND_LT, ARM_B(jmp_offset), ctx);
-        _emit_b_cond(state, jmp_off, COND_LT);
-        break;
-    case EBPF_JSLE:
-        // _emit(ARM_COND_GE, ARM_B(jmp_offset), ctx);
-        _emit_b_cond(state, jmp_off, COND_GE);
-        break;
-
-    default:
-        break;
-    }
-}
-
 void _emit_lsh64_reg(jit_state *state, const s8 dst[], const s8 src[]) {
     const s8 *tmp = bpf2a32[TMP_REG_1];
     const s8 *tmp2 = bpf2a32[TMP_REG_2];
@@ -1386,10 +1327,6 @@ static void gen_return(jit_state *state) {
     _emit_mov_reg(state, ARM_LR, 1);
 }
 
-static void gen_bound_checks(jit_state *state, int end) {
-    _emit_jump(state, end, 0);
-}
-
 static int build_inst(jit_state *state, ebpf_inst *inst) {
     const int8_t *dst = bpf2a32[inst->dst];
     const int8_t *src = bpf2a32[inst->src];
@@ -1854,9 +1791,6 @@ static void build_body(jit_state *state) {
             DEBUG_LOG("ERROR: %d\n", ret);
             return;
         }
-    }
-    if (state->use_sfi) {
-        state->exit_off = inst_num;
     }
 }
 

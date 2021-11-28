@@ -63,8 +63,8 @@ typedef struct ebpf_patch {
 } ebpf_patch;
 
 void init_patch_sys(void);
-void destory_patch_context(void);
-void destory_ebpf_patch(ebpf_patch *patch);
+void destroy_patch_context(void);
+void destroy_ebpf_patch(ebpf_patch *patch);
 void show_all_patches(void);
 
 struct patch_desc;

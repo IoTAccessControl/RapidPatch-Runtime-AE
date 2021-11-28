@@ -127,7 +127,7 @@ float cycles2us(int cycles) {
 void profile_dump(int eid) {
 	uint32_t ticks = profiler.end_tick[eid] - profiler.start_tick[eid];
 	
-#if defined(NRF52_NO_OS) || defined(STM32L475_NO_OS)
+#if defined(NRF52_NO_OS) || defined(STM32L475_NO_OS) || defined(STM32F407_NO_OS)
 	/*
 	us = (float) ticks_per_us  // <------ will crash in qemu(cortex-m4)
 	*/
@@ -139,7 +139,7 @@ void profile_dump(int eid) {
 	//us = ticks * 10 / 189;
 	DEBUG_LOG("Event %d -> cycle: %d time(us): %d\n", eid, ticks, us);
 #else
-	DEBUG_LOG("QEMU Event %d -> cycle: %d %d\n", ticks);
+	DEBUG_LOG("QEMU Event %d -> cycle: %d\n", eid, ticks);
 #endif
 }
 

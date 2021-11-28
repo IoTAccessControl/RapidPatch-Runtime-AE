@@ -41,8 +41,6 @@ typedef struct jit_state {
     int size;
     int idx;
     int epilogue_offset;
-    bool use_sfi;
-    int exit_off;
     int err_line;
     uint32_t *offsets;
     void *__bpf_call_base;

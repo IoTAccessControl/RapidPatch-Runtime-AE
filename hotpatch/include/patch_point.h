@@ -22,7 +22,7 @@ void clear_all_hw_bkpt();
 
 // test func
 void test_debugmon_patch(void);
-void trigger_debugmon(void);
+void test_fpb_flash_patch(void);
 int test_dynamic_bug(int val);
 
 // for evaluation only

@@ -70,19 +70,21 @@ endian
 #include "malloc.h"
 #include <string.h>
 
+#define MEM_IDX 0
+
 static void* my_malloc(size_t size) {
-	return mymalloc(1, size);
+	return mymalloc(MEM_IDX, size);
 }
 
 static void* my_calloc(size_t nelem, size_t elmsize) {
 	size_t size = nelem * elmsize;
-	void *mem = mymalloc(1, size);
+	void *mem = mymalloc(MEM_IDX, size);
 	memset(mem, 0, size);
 	return mem;
 }
 
 static void my_free(void* rmem) {
-	myfree(1, rmem);
+	myfree(MEM_IDX, rmem);
 }
 
 #define my_os_malloc my_malloc

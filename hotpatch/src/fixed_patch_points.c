@@ -58,15 +58,15 @@ __asm int fixed_patch_point_hanlder(void) {
 // TODO: inline the fixed_patch_point_handler
 __NAKE int fixed_patch_point_hanlder(void) {
 	// __asm("nop");
-	__asm volatile("PUSH {r0, lr}");
+	__asm volatile("PUSH {r0, r1, r2, lr}");
 	__asm volatile("MRS r0, CONTROL");
 	__asm volatile("TST r0, #2");
 	__asm volatile("ITE EQ");
-	__asm volatile("MRSEQ r0, MSP");
-	__asm volatile("MRSNE r0, PSP");
+	__asm volatile("MRSEQ r0, MSP"); //
+	__asm volatile("MRSNE r0, PSP"); //
 //	asm volatile("ADD r0, #8"); // set to origin sp (push {r0, lr})
 	__asm volatile("BL dispatch_fixed_patch_point");
-	__asm volatile("POP {r0, pc}");
+	__asm volatile("POP {r0, r1, r2, pc}");
 //	asm volatile("ADDS r7, #16");
 //	asm volatile("MOV  sp, r7");
 //	asm volatile("pop {r7, pc}");
@@ -136,8 +136,12 @@ static struct dummy_MQTT_buf_ctx {
 	unsigned char *cur;
     unsigned char *end;
 };
+
 static void call_dummy_buggy_MQTT_function();
+static void call_dummy_CVE_2020_17445_pico_ipv6_process_destopt();
+static int dummy_CVE_2020_17445_pico_ipv6_process_destopt();
 static int dummy_buggy_MQTT_packet_length_decode(struct dummy_MQTT_buf_ctx *buf, uint32_t *length);
+
 
 // align 32
 static struct func_args {
@@ -199,7 +203,15 @@ void test_fixed_patch_point() {
 	profile_add_event("fixed patch");
 	// call_buggy_function();
 	call_dummy_buggy_MQTT_function();
-	profile_dump(0);
+	// profile_dump(0);
+}
+
+void test_unbounded_loop() {
+	// read_local_fixed_patch();
+	profile_add_event("fixed patch");
+	// call_buggy_function();
+	call_dummy_CVE_2020_17445_pico_ipv6_process_destopt();
+	// profile_dump(0);
 }
 
 #endif
@@ -222,7 +234,7 @@ void dispatch_fixed_patch_point(uint32_t sp) {
 	uint32_t lr = *(uint32_t *) (sp + 4);
 	uint32_t addr = (lr - 4) & (~0x3);
 	ebpf_patch *patch = get_fixed_patch_by_lr(addr);
-	// DEBUG_LOG("Patch instruction num %d\n", patch->vm->num_insts);
+	DEBUG_LOG("Patch instruction num %d\n", patch->vm->num_insts);
 	uint64_t ret = 0;
 	DEBUG_LOG("try to get patch at: 0x%08x\n", addr);
 	fixed_stack_frame *args = (fixed_stack_frame *) sp;
@@ -232,14 +244,15 @@ void dispatch_fixed_patch_point(uint32_t sp) {
 		return;
 	} 
 	ret = run_ebpf_filter(patch, args, sizeof(fixed_stack_frame));
-	// DEBUG_LOG("ret:0x%08x\n", (uint32_t)ret);
+	DEBUG_LOG("ret:0x%08x\n", (uint32_t)ret);
 	uint32_t op = ret >> 32;
-	// DEBUG_LOG("op code:0x%08x \n", op);
+	DEBUG_LOG("op code:0x%08x \n", op);
 	uint32_t ret_code = ret & 0x00000000ffffffff;
 	// DEBUG_LOG("ret code:0x%08x \n", ret_code);
 	//op = FILTER_DROP;
 	if (op == FILTER_DROP) {
 		*(volatile uint32_t *) &(args->r0_1) = 0; 
+		TEST_LOG("FILTER_DROP\n");
 		return;
 	} else if (op == FILTER_REDIRECT) {
 		*(volatile uint32_t *) (args->lr) = ret_code;
@@ -325,10 +338,62 @@ static void call_dummy_buggy_MQTT_function() {
 
 	DEBUG_LOG("Decoded MQTT packet length is %d\n", pkt_length);
 
-	DEBUG_LOG("Bug function return %d ", ret);
-	if (ret != 0) {
-		DEBUG_LOG("is still vulnerable!\n\n");
+	if (pkt_length != 0) {
+		DEBUG_LOG("The buggy function is still vulnerable!\n");
 	} else {
-		DEBUG_LOG("is fixed!\n");
+		DEBUG_LOG("The buggy function is fixed!\n");
 	}
+}
+
+#define PICO_IPV6_EXTHDR_OPT_PAD1 0
+#define PICO_IPV6_EXTHDR_OPT_PADN 1
+#define PICO_IPV6_EXTHDR_OPT_SRCADDR 201
+
+static int dummy_CVE_2020_17445_pico_ipv6_process_destopt(uint8_t *destopt, uint8_t *f, uint32_t opt_ptr)
+{
+	PATCH_FUNCTION_ERR_CODE;
+
+    uint8_t *option = NULL;
+    uint8_t len = 0, optlen = 0;
+    option = (destopt + 2); /* Skip Dest_opts header */
+    len = (uint8_t)(((*(destopt + 1) + 1) << 3) - 2); /* len in bytes, minus nxthdr and len byte */
+    while (len) {
+        optlen = (uint8_t)(*(option + 1) + 2);
+        switch (*option)
+        {
+        case PICO_IPV6_EXTHDR_OPT_PAD1:
+            break;
+
+        case PICO_IPV6_EXTHDR_OPT_PADN:
+            break;
+
+        case PICO_IPV6_EXTHDR_OPT_SRCADDR:
+            // ipv6_dbg("IPv6: home address option with length %u\n", optlen);
+            break;
+
+        default:
+            // THE CODE HERE IS OMITTED FOR BREVITY
+            break;
+        }
+        opt_ptr += optlen;
+        option += optlen;
+        len = (uint8_t)(len - optlen);
+    }
+    return 0;
+}
+
+static void call_dummy_CVE_2020_17445_pico_ipv6_process_destopt() {
+	// setup test arguments
+	DEBUG_LOG("addr ground-truth bug:0x%08x test:0x%08x \n", dummy_CVE_2020_17445_pico_ipv6_process_destopt, call_dummy_CVE_2020_17445_pico_ipv6_process_destopt);
+	
+	// Prepare invocation context for the buggy function
+	// AMNESIA33_cve_2020_17445
+	uint32_t opt_ptr = 0;
+	uint8_t destopt[50] = {1, 1, -2, -2, -2, -2, -2};
+	
+	profile_start(0);
+	int ret = dummy_CVE_2020_17445_pico_ipv6_process_destopt(destopt, 0, opt_ptr);
+	profile_end(0);
+
+	DEBUG_LOG("The return code of the buggy function is %d\n", ret);
 }

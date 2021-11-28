@@ -14,21 +14,61 @@ static void this_is_cve_trigger_func(void) {
 	int eid = profile_add_event("dummy cve start");
 	int inputs[] = {4500, 2000};
 	profile_start(0);
+	int v = test_dynamic_bug(inputs[0]);
 	profile_end(0);
 	profile_dump(0);
-	for (int i = 0; i < 1; i++) {
-		profile_start(0);
-		int v = test_dynamic_bug(inputs[i]);
-		profile_end(0);
-		profile_dump(0);
-		//profile_dump(1);
-		// profile_start(2);
-		DEBUG_LOG("[%04d] is bug fixed? %s\n", i, v == 0 ? "yes": "no");
-		// profile_end(2);
-		// profile_dump(2);
-	}
-	//DEBUG_LOG("finish test_func: 0x%08x\n", (uint32_t) test_dynamic_bug);
+	DEBUG_LOG("is bug fixed? %s\n", v == 0 ? "yes": "no");
 }
+
+
+// dummy_cve dynamic_patch_dummy_cve1
+static void trigger_dummy_cve1() {
+	// setup test arguments
+	DEBUG_LOG("run dynamic_patch_dummy_cve1 func at addr:0x%08x\n", dynamic_patch_dummy_cve1);
+	
+	uint8_t packet_buf[10];
+	
+	for (int i=0; i<4; ++i) packet_buf[i] = 0xff;
+	packet_buf[4] = 0x7f;
+	for (int i=5; i<10; ++i) packet_buf[i] = 0;
+
+	struct dummy_MQTT_buf_ctx dbc;
+	dbc.cur = &packet_buf[0];
+	dbc.end = &packet_buf[9];	
+
+	uint32_t pkt_length = 0;
+	
+	profile_start(0);
+	int ret = dynamic_patch_dummy_cve1(&dbc, &pkt_length);
+	profile_end(0);
+
+	DEBUG_LOG("Decoded MQTT packet length is %d\n", pkt_length);
+
+	if (pkt_length != 0) {
+		DEBUG_LOG("The buggy function is still vulnerable!\n");
+	} else {
+		DEBUG_LOG("The buggy function is fixed!\n");
+	}
+}
+
+
+// trigger 
+// hotpatch\include\dynamic_patch_dummy_cve.h
+/*
+unbounded loop: CVE_2020_17445_pico_ipv6_process_destopt
+*/
+static void trigger_dummy_cve2(void) {
+	DEBUG_LOG("run dynamic_patch_dummy_cve2 func at addr: 0x%08x\n", (uint32_t) dynamic_patch_dummy_cve2);
+	uint32_t opt_ptr = 0;
+	uint8_t destopt[50] = {1, 1, -2, -2, -2, -2, -2};
+	
+	profile_start(0);
+	int ret = dynamic_patch_dummy_cve2(destopt, 0, opt_ptr);
+	profile_end(0);
+
+	DEBUG_LOG("Exit loop. The return code of the buggy function is %d\n", ret);
+}
+
 
 #ifdef ZEPHYR_OS
 #include <zephyr.h>
@@ -105,6 +145,8 @@ trigger_func fixed_trigger_func_list[] = {
 
 trigger_func dynamic_trigger_func_list[] = {
 	this_is_cve_trigger_func,
+	trigger_dummy_cve1,
+	trigger_dummy_cve2,
 };
 
 trigger_func fixed_trigger_func_list[] = {

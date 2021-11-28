@@ -121,3 +121,73 @@ void test_dummy_cve() {
 	DEBUG_LOG("Not IPML!\n");
 }
 #endif
+
+
+// test for filter patch
+// 
+int dynamic_patch_dummy_cve1(struct dummy_MQTT_buf_ctx *buf, uint32_t *length)
+{
+	uint8_t shift = 0U;
+	uint8_t bytes = 0U;
+
+	int ERR = -1;
+
+	*length = 0U;
+	do {
+		if (bytes > 4) {
+			return ERR;
+		}
+
+		if (buf->cur >= buf->end) {
+			return ERR;
+		}
+
+		*length += ((uint32_t)*(buf->cur) & 0x7f)
+								<< shift;
+		shift += 7;
+		bytes++;
+	} while ((*(buf->cur++) & 0x80) != 0U);
+
+	return 0;
+}
+
+
+#define PICO_IPV6_EXTHDR_OPT_PAD1 0
+#define PICO_IPV6_EXTHDR_OPT_PADN 1
+#define PICO_IPV6_EXTHDR_OPT_SRCADDR 201
+
+
+// test for unbounded loop
+// CVE_2020_17445_pico_ipv6_process_destopt
+int dynamic_patch_dummy_cve2(uint8_t *destopt, uint8_t *f, uint32_t opt_ptr)
+{
+    uint8_t *option = NULL;
+    uint8_t len = 0, optlen = 0;
+    option = (destopt + 2); /* Skip Dest_opts header */
+    len = (uint8_t)(((*(destopt + 1) + 1) << 3) - 2); /* len in bytes, minus nxthdr and len byte */
+    while (len) {
+        optlen = (uint8_t)(*(option + 1) + 2);
+        switch (*option)
+        {
+        case PICO_IPV6_EXTHDR_OPT_PAD1:
+            break;
+
+        case PICO_IPV6_EXTHDR_OPT_PADN:
+            break;
+
+        case PICO_IPV6_EXTHDR_OPT_SRCADDR:
+            // ipv6_dbg("IPv6: home address option with length %u\n", optlen);
+            break;
+
+        default:
+            // THE CODE HERE IS OMITTED FOR BREVITY
+            break;
+        }
+        opt_ptr += optlen;
+        option += optlen;
+        len = (uint8_t)(len - optlen);
+    }
+    return 0;
+}
+
+

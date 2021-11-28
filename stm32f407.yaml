@@ -13,22 +13,8 @@ MyApp:
 - app/rt_app.c
 
 HotPatch:
-- hotpatch/include/iotpatch.h
-- hotpatch/src/iotpatch.c
-- hotpatch/include/patch_point.h
-- hotpatch/include/utils.h
-- hotpatch/include/defs.h
-- hotpatch/include/fixed_patch_point_def.h
-- hotpatch/src/utils.c
-- hotpatch/src/ebpf_test.c
-- hotpatch/src/cortex-m4_fbp.c
-- hotpatch/src/patch_service.c
-- hotpatch/src/profiling.c
-- hotpatch/src/flash_api.c
-- hotpatch/src/fixed_patch_points.c
-- hotpatch/src/dynamic_patch_load.c
-- hotpatch/src/fixed_patch_load.c
-- hotpatch/src/jit_dev_test.c
+- hotpatch/include/*.h
+- hotpatch/src/*.c
 
 
 eBPF:

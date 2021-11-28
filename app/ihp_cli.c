@@ -3,7 +3,6 @@
 #include <stdio.h>
 #include "ihp_cli.h"
 #include "hotpatch/include/iotpatch.h"
-#include "dummy_cve.h"
 #include "hotpatch/include/patch_service.h"
 #include "hotpatch/include/utils.h"
 #include "hotpatch/include/ebpf_test.h"
@@ -94,7 +93,15 @@ static void shell_dispatch_cmd(char *argv[], int argc) {
 		} else {
 			shell_printf("Usage: vm [cve]\n");
 		}
-	}else {
+	} else if (strcmp(argv[0], "transfer") == 0) {
+		usart_trans trans = {
+			.usart_getchar = &shell_get_char,
+		};
+		bool res = install_usart_patch(&trans);
+		if (!res) {
+			DEBUG_LOG("Failed to install Patch!\n");
+		}
+	} else {
 		DEBUG_LOG("Command not find: %s argc: %d\n", argv[0], argc);
 	}
 }
@@ -151,28 +158,28 @@ static void test_rt_task(void) {
 	// init_rt_task_servo_motor();
 }
 
-static void test_debug_patch(void) {
-	DEBUG_LOG("test_debug_patch\n");
+static void test_debug_kprobe_patch(void) {
+	DEBUG_LOG("test_debug_kprobe_patch\n");
 #ifndef LINUX_TEST
 	test_debugmon_patch();
 #endif
 	
 }
 
-static void test_patch_trigger(void) {
+static void test_debug_fpb_patch(void) {
 	//add_hw_bkpt((uintptr_t) dev_test);
 	//show_dynamic_patch_points();
+	DEBUG_LOG("test_debug_fpb_patch\n");
 #ifndef LINUX_TEST
-	trigger_debugmon();
+	test_fpb_flash_patch();
 #endif
 }
 
 static void reset_patch() {
-	// show_cve_info();
-	// test_dummy_cve();
 #ifndef LINUX_TEST
 	show_hw_bkpt();
 	clear_all_hw_bkpt();
+	destroy_patch_context();
 #endif
 }
 
@@ -181,13 +188,22 @@ Fixed patch point test
 
 */
 static void run_eva_test() {
-	// test_dummy_cve();
+	#ifndef DEV_QEMU
 	run_ebpf_test();
+	#endif
+}
+
+static void run_load_fixed_patch_point_test() {
+	load_local_fixed_patch(2);
 }
 
 static void run_fixed_patch_point_test() {
-	load_local_fixed_patch(2);
 	test_fixed_patch_point();
+}
+
+static void run_unbounded_loop_test() {
+	load_local_fixed_patch(3);
+	test_unbounded_loop();
 }
 
 struct cli_cmd {
@@ -196,14 +212,23 @@ struct cli_cmd {
 	char *help;
 };
 
+// static struct cli_cmd cmds[] = {
+// 	{TEST_LOG, test_debug_kprobe_patch, "Test FPB breakpoint add"},
+// 	// {TEST_LOG, test_rt_task, "Test Realtime Task"},
+// 	{TEST_FPB, test_debug_fpb_patch, "Test FPB patch trigger"},
+// 	{TEST_CLEAR, reset_patch, "Clear all bpkt and patch"},
+// 	{TEST_EBPF, run_eva_test, "Run eva test"},
+// 	{TEST_SVR, start_patch_service, "Start patch service"},
+// 	{TEST_CVE_2020_10062_VUL_FUNC, run_fixed_patch_point_test, "Invoke the vulnerable function for CVE-2020-10062"},
+// 	{TEST_LOAD_FIXED_PATCH_FOR_CVE_2020_10062, run_load_fixed_patch_point_test, "Load patch at the fixed patch point for CVE-2020-10062"},
+// 	{TEST_CVE_2020_17445_VUL_FUNC, run_unbounded_loop_test, "Invoke the vulnerable function for CVE-2020-17445 (Unbounded loop test)"},
+// };
+
+// cli for dynamic patch points
 static struct cli_cmd cmds[] = {
-	{TEST_LOG, test_debug_patch, "Test FPB breakpoint add"},
-	// {TEST_LOG, test_rt_task, "Test Realtime Task"},
-	{TEST_FPB, test_patch_trigger, "Test FPB patch trigger"},
-	{TEST_CLEAR, reset_patch, "Clear all bpkt and patch"},
-	{TEST_EBPF, run_eva_test, "Run eva test"},
-	{TEST_SVR, start_patch_service, "Start patch service"},
-	{TEST_FIXED_PATCH_POINT, run_fixed_patch_point_test, "Start testing fixed patch point"},
+	{0, reset_patch, "Clear all bpkt and patch."},
+	{1, test_debug_kprobe_patch, "Test Kprobe Patch."},
+	{2, test_debug_fpb_patch, "Test FPB Flash Patch."}
 };
 
 static void cli_print_help() {
@@ -273,7 +298,7 @@ static void handle_patch_func(int pid) {
 #if USE_DYNAMIC_PATCH // dynamic patch
 	set_patch_mode(CORTEX_DEB_MON_PATCH);
 	// set_patch_mode(CORTEX_FPB_PATCH);
-	//show_local_patch_desc();
+	
 	// if (use_fpb) return;
 	read_local_patch(pid);
 	show_hw_bkpt();

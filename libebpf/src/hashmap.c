@@ -122,9 +122,13 @@ arraymap *arraymap_new(int initial_size) {
 }
 
 void arraymap_destroy(arraymap *map) {
-	ebpf_free(map->keys);
-	ebpf_free(map->vals);
-	ebpf_free(map);
+	if (map != NULL) {
+		if (map->keys != NULL)
+			ebpf_free(map->keys);
+		if (map->vals != NULL) 
+			ebpf_free(map->vals);
+		ebpf_free(map);		
+	}
 }
 
 int arraymap_set(arraymap *map, void *key, void *val) {

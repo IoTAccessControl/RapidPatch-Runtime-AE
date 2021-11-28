@@ -215,7 +215,7 @@ void FPB_Handler0(void)
 	__asm__("NOP");
 	__asm__("NOP");
 	__asm__("PUSH {r0-r3, r12, lr}");
-	DEBUG_LOG("FPB_Handler0\n");
+	//DEBUG_LOG("FPB_Handler0\n");
 //	fpb_trampoline_0();
 //	IMPORT leave_fpb_bpkt
 //	__asm__("PUSH {r3, lr}");
@@ -659,13 +659,6 @@ static void debug_monitor_init() {
 	*shp8 = -1;
 }
 
-#ifdef USE_KEIL
-__asm void set_return(int ret_code, uint32_t addr) {
-	MOV PC, r1
-	BX lr
-}
-#endif
-
 static inline void dump_context(stack_context *ctx) {
 	TEST_LOG("Register Dump:\n");
 	TEST_LOG(" r0  =0x%08x\n", ctx->r0);
@@ -727,7 +720,7 @@ https://www.keil.com/support/man/docs/armclang_intro/armclang_intro_ddx147143082
 uint32_t leave_fpb_bpkt(stack_context *ctx, int bpkt_idx) {
 	//DEBUG_LOG("argmeunts: r0=0x%08x r1=0x%08x r2=0x%08x r3=0x%08x\n", r0, r1, r2, r3);
 	//dump_context(ctx);
-	//DEBUG_LOG("current bpkt_idx: %d\n", bpkt_idx);
+	TEST_LOG("enter leave_fpb_bpkt bpkt_idx: %d\n", bpkt_idx);
 	//bpkt_idx = 0;
 	uint32_t inst_addr = FPB->COMP[bpkt_idx] & (~0x1);
 	ebpf_patch *patch = get_dynamic_patch_by_bpkt(inst_addr);
@@ -834,14 +827,14 @@ void leave_debug_monitor(stack_context *ctx) {
 		*dfsr = dfsr_bkpt_evt_bitmask;
 		// TODO: disable/enable single breakpoint
 		fpb_disable(); // will exit
-		TEST_LOG("is_bkpt_dbg_evt\n");
+		//TEST_LOG("is_bkpt_dbg_evt\n");
 	} else if (is_halt_dbg_evt) {
 		*demcr &= ~(demcr_single_step_mask);
 		*dfsr = dfsr_halt_evt_bitmask;
 		fpb_enable();
 		//DEBUG_LOG("bpkt inst addr: 0x%08x\n", ctx->pc - 4);
 		// enter twice debug monitor
-		TEST_LOG("is_halt_dbg_evt\n");
+		//TEST_LOG("is_halt_dbg_evt\n");
 		//__asm__ __volatile__("cpsie i");
 	} 
 }
@@ -1050,15 +1043,15 @@ int hera_fix_func(const IPPacket_t * const pxIPPacket, NetworkBufferDescriptor_t
 static void fpb_setup_test() {
 	uint32_t buggy_addr = (uint32_t) RawBuggyFunc & 0xFFFFFFFE;
 	uint32_t fixed_addr = (uint32_t) FixedBuggyFunc & 0xFFFFFFFE;
-	fixed_addr = (uint32_t) FPB_Handler0 & 0xFFFFFFFE;
 	
+	// fixed_addr = (uint32_t) FPB_Handler0 & 0xFFFFFFFE;
 	/* HERA approach */
 	//buggy_addr = (uint32_t) freertos_cve_func & 0xFFFFFFFE;
 	//fixed_addr = (uint32_t) HERA_Dipatcher & 0xFFFFFFFE;
 
 	
 	// set buggy breakpoint
-	int fidx = 3;
+	int fidx = 1;
 	FPB->COMP[fidx] = buggy_addr | 0x1;
 	// set remap inst, bl xxx, jump to fixed addr 
 	uint32_t jmp_inst = calc_branch_instr(buggy_addr, fixed_addr);
@@ -1074,23 +1067,26 @@ static void fpb_setup_test() {
 }
 
 void test_debugmon_patch() {
-	//RawBuggyFunc();
-	DEBUG_LOG("test_debugmon_patch\n");
-	test_freertos_cve();
-
-	// add_breakpoint((uint32_t) buggy_func);
-	// load dummy patch
-	//set_patch_mode(CORTEX_FPB_PATCH);
-	fpb_setup_test();
+	DEBUG_LOG("Before add Kprobe Patch\n");
+	set_patch_mode(CORTEX_DEB_MON_PATCH);
 	
-	/* Our approach */
+	test_func();
+	DEBUG_LOG("Set Kprobe Patch for buggy_func\n");
+	add_breakpoint((uint32_t) buggy_func);
+	// do not find patch for pc addr: 0x080084e6
+	// you should setup patch first
+	test_func();
 }
 
-void trigger_debugmon(void) {
-	//test_func();
-	//RawBuggyFunc();
-	test_freertos_cve();
-}
+void test_fpb_flash_patch(void) {
+	DEBUG_LOG("Before add FPB Flash Patch.\n");
+	set_patch_mode(CORTEX_FPB_PATCH);
 
+	RawBuggyFunc();
+	DEBUG_LOG("Setup FPB Flash Patch.\n");
+	fpb_setup_test();
+	DEBUG_LOG("After FPB Flash Patch.\n");
+	RawBuggyFunc();
+}
 #endif
 

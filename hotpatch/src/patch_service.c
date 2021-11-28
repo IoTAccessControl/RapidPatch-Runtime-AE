@@ -338,3 +338,8 @@ bool start_patch_service() {
 	// wait_for_patch();
 	return false;
 }
+
+
+bool install_usart_patch(usart_trans *trans) {
+	
+}

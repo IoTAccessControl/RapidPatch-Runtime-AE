@@ -24,4 +24,6 @@ int fixed_patch_point_hanlder();
 // int dummy_cv1_patch_point();
 void test_fixed_patch_point();
 
+void test_unbounded_loop();
+
 #endif
