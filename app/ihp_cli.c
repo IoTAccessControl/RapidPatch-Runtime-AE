@@ -21,6 +21,7 @@ static void handle_trigger_func(int tid);
 static void show_patch_list();
 static void handle_patch_func(int pid);
 static void handle_eBPF_vm_run_patch(int vid);
+static void installing_patch_from_usart();
 
 #define SHELL_BUFFER_SIZE 128
 #define SHELL_PROMPT "$ "
@@ -94,7 +95,9 @@ static void shell_dispatch_cmd(char *argv[], int argc) {
 		} else {
 			shell_printf("Usage: vm [cve]\n");
 		}
-	}else {
+	} else if (strcmp(argv[0], "transfer") == 0) {
+
+	} else {
 		DEBUG_LOG("Command not find: %s argc: %d\n", argv[0], argc);
 	}
 }
