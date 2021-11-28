@@ -45,4 +45,16 @@ typedef struct __attribute__((aligned(2))) patch_payload {
 bool start_patch_service(void);
 bool query_service_alive(void);
 
+/*
+ Transfer Patch use Usart
+*/
+
+typedef struct usart_trans {
+	char (*usart_getchar) ();
+} usart_trans;
+
+bool install_usart_patch(usart_trans *trans) {
+
+}
+
 #endif

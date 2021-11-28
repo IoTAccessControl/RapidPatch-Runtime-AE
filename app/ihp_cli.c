@@ -21,7 +21,6 @@ static void handle_trigger_func(int tid);
 static void show_patch_list();
 static void handle_patch_func(int pid);
 static void handle_eBPF_vm_run_patch(int vid);
-static void installing_patch_from_usart();
 
 #define SHELL_BUFFER_SIZE 128
 #define SHELL_PROMPT "$ "
@@ -96,7 +95,13 @@ static void shell_dispatch_cmd(char *argv[], int argc) {
 			shell_printf("Usage: vm [cve]\n");
 		}
 	} else if (strcmp(argv[0], "transfer") == 0) {
-
+		usart_trans trans = {
+			.usart_getchar = &shell_get_char,
+		};
+		bool res = install_usart_patch(&trans);
+		if (!res) {
+			DEBUG_LOG("Failed to install Patch!\n");
+		}
 	} else {
 		DEBUG_LOG("Command not find: %s argc: %d\n", argv[0], argc);
 	}
