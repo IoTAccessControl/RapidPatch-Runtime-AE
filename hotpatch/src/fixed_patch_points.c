@@ -2,6 +2,7 @@
 #include "libebpf/include/ebpf.h"
 #include "hotpatch/include/iotpatch.h"
 #include "hotpatch/include/utils.h"
+#include <stddef.h>
 
 #include "hotpatch/include/profiling.h"
 #include "hotpatch/include/fixed_patch_point_def.h"
@@ -58,15 +59,14 @@ __asm int fixed_patch_point_hanlder(void) {
 // TODO: inline the fixed_patch_point_handler
 __NAKE int fixed_patch_point_hanlder(void) {
 	// __asm("nop");
-	__asm volatile("PUSH {r0, r1, r2, lr}");
+	__asm volatile("PUSH {r0, r1, r2, r3, lr}");
 	__asm volatile("MRS r0, CONTROL");
 	__asm volatile("TST r0, #2");
 	__asm volatile("ITE EQ");
 	__asm volatile("MRSEQ r0, MSP"); //
 	__asm volatile("MRSNE r0, PSP"); //
-//	asm volatile("ADD r0, #8"); // set to origin sp (push {r0, lr})
 	__asm volatile("BL dispatch_fixed_patch_point");
-	__asm volatile("POP {r0, r1, r2, pc}");
+	__asm volatile("POP {r0, r1, r2, r3, pc}");
 //	asm volatile("ADDS r7, #16");
 //	asm volatile("MOV  sp, r7");
 //	asm volatile("pop {r7, pc}");
@@ -218,6 +218,9 @@ void test_unbounded_loop() {
 
 typedef struct fixed_stack_frame {
 	uint32_t r0_1;
+	uint32_t r1_1;
+	uint32_t r2_1;
+	uint32_t r3;
 	uint32_t lr; // patch index
 	// uint32_t r3;
 	// uint32_t r2;
@@ -229,15 +232,34 @@ typedef struct fixed_stack_frame {
 	// uint32_t args5;
 } fixed_stack_frame;
 
+static void dump_stack(uint32_t sp) {
+	// int a = 1;
+	// int b = 2;
+	// int c = 3;
+	// DEBUG_LOG("addr a:0x%08x b:0x%08x c:0x%08x", &a, &b, &c);
+	DEBUG_LOG("SP: 0x%08x\n", sp);
+	for (int i = 0; i < 10; i++) {
+		uint32_t v = *(uint32_t *) (sp - 8 + 4 * i);
+		DEBUG_LOG("[sp %d] 0x%08x\n", -8 + 4 * i, v);
+	}
+}
+
+static void dump_vm_args(fixed_stack_frame *args) {
+	DEBUG_LOG("r0 = 0x%08x\n", args->r0_1);
+	DEBUG_LOG("r1 = 0x%08x\n", args->r1_1);
+}
+
 void dispatch_fixed_patch_point(uint32_t sp) {
 #if 1
-	uint32_t lr = *(uint32_t *) (sp + 4);
-	uint32_t addr = (lr - 4) & (~0x3);
+	uint32_t lr = *(uint32_t *) (sp + offsetof(fixed_stack_frame, lr)); // r0-r3,lr
+	// dump_stack(sp);
+	uint32_t addr = (lr & ~0x1) - 4; // bl function 
 	ebpf_patch *patch = get_fixed_patch_by_lr(addr);
 	DEBUG_LOG("Patch instruction num %d\n", patch->vm->num_insts);
 	uint64_t ret = 0;
 	DEBUG_LOG("try to get patch at: 0x%08x\n", addr);
 	fixed_stack_frame *args = (fixed_stack_frame *) sp;
+	// dump_vm_args(args);
 	if (patch == NULL) {
 		*(volatile uint32_t *) &(args->r0_1) = FIXED_OP_PASS;
 		DEBUG_LOG("Do not find Patch here\n");
@@ -290,6 +312,8 @@ static int dummy_buggy_MQTT_packet_length_decode(struct dummy_MQTT_buf_ctx *buf,
 {
 	PATCH_FUNCTION_ERR_CODE;
 
+	// DEBUG_LOG("addr: 0x%08x 0x%08x\n", buf, length);
+
 	uint8_t shift = 0U;
 	uint8_t bytes = 0U;
 
@@ -317,8 +341,9 @@ static int dummy_buggy_MQTT_packet_length_decode(struct dummy_MQTT_buf_ctx *buf,
 }
 
 static void call_dummy_buggy_MQTT_function() {
-	// setup test arguments
-	DEBUG_LOG("addr ground-truth bug:0x%08x test:0x%08x \n", dummy_buggy_MQTT_packet_length_decode, call_dummy_buggy_MQTT_function);
+	// setup test arguments 
+	int bl_addr = (uint32_t) dummy_buggy_MQTT_packet_length_decode + 9;
+	DEBUG_LOG("addr ground-truth bug:0x%08x test:0x%08x \n", bl_addr, call_dummy_buggy_MQTT_function);
 	
 	uint8_t packet_buf[10];
 	
@@ -383,8 +408,9 @@ static int dummy_CVE_2020_17445_pico_ipv6_process_destopt(uint8_t *destopt, uint
 }
 
 static void call_dummy_CVE_2020_17445_pico_ipv6_process_destopt() {
-	// setup test arguments
-	DEBUG_LOG("addr ground-truth bug:0x%08x test:0x%08x \n", dummy_CVE_2020_17445_pico_ipv6_process_destopt, call_dummy_CVE_2020_17445_pico_ipv6_process_destopt);
+	// setup test arguments 8002df8 - 8002dec
+	int bl_addr = (uint32_t) dummy_CVE_2020_17445_pico_ipv6_process_destopt + 11;
+	DEBUG_LOG("addr ground-truth bug:0x%08x test:0x%08x \n", bl_addr, call_dummy_CVE_2020_17445_pico_ipv6_process_destopt);
 	
 	// Prepare invocation context for the buggy function
 	// AMNESIA33_cve_2020_17445

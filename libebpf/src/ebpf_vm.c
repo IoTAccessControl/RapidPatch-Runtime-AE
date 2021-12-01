@@ -521,6 +521,7 @@ u64 ebpf_vm_exec(const struct ebpf_vm *vm, void *mem, u32 mem_len) {
 
 		if (!iters_check(tick++)) {
 			// FILTER_DROP
+			DEBUG_LOG("SFI: Exceed the max iteration number: %d > %d!\n", tick, MAX_ITERS);
 			return 1 << 32;
 		}
 	}
@@ -532,6 +533,7 @@ bool iters_check(int tick) {
 	if (tick > MAX_ITERS) {
 		return false;
 	}
+	return true;
 }
 
 bool bounds_check(const struct ebpf_vm *vm, void *addr, int size, const char *type, u16 cur_pc, void *mem, size_t mem_len, void *stack) {

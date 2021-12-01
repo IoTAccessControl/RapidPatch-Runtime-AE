@@ -212,24 +212,30 @@ struct cli_cmd {
 	char *help;
 };
 
+// #ifdef DEV_QEMU
+
+static struct cli_cmd cmds[] = {
+	{TEST_LOG, test_debug_kprobe_patch, "Test FPB breakpoint add"},
+	{TEST_FPB, test_debug_fpb_patch, "Test FPB patch trigger"},
+	{TEST_CLEAR, reset_patch, "Clear all bpkt and patch"},
+	{TEST_EBPF, run_eva_test, "Run eva test"},
+	{TEST_SVR, start_patch_service, "Start patch service"},
+	{TEST_CVE_2020_10062_VUL_FUNC, run_fixed_patch_point_test, "Invoke the vulnerable function for CVE-2020-10062"},
+	{TEST_LOAD_FIXED_PATCH_FOR_CVE_2020_10062, run_load_fixed_patch_point_test, "Load patch at the fixed patch point for CVE-2020-10062"},
+	{TEST_CVE_2020_17445_VUL_FUNC, run_unbounded_loop_test, "Invoke the vulnerable function for CVE-2020-17445 (Unbounded loop test)"},
+};
+
+// #else
+
+// // cli for dynamic patch points
 // static struct cli_cmd cmds[] = {
-// 	{TEST_LOG, test_debug_kprobe_patch, "Test FPB breakpoint add"},
-// 	// {TEST_LOG, test_rt_task, "Test Realtime Task"},
-// 	{TEST_FPB, test_debug_fpb_patch, "Test FPB patch trigger"},
-// 	{TEST_CLEAR, reset_patch, "Clear all bpkt and patch"},
-// 	{TEST_EBPF, run_eva_test, "Run eva test"},
-// 	{TEST_SVR, start_patch_service, "Start patch service"},
-// 	{TEST_CVE_2020_10062_VUL_FUNC, run_fixed_patch_point_test, "Invoke the vulnerable function for CVE-2020-10062"},
-// 	{TEST_LOAD_FIXED_PATCH_FOR_CVE_2020_10062, run_load_fixed_patch_point_test, "Load patch at the fixed patch point for CVE-2020-10062"},
-// 	{TEST_CVE_2020_17445_VUL_FUNC, run_unbounded_loop_test, "Invoke the vulnerable function for CVE-2020-17445 (Unbounded loop test)"},
+// 	{0, reset_patch, "Clear all bpkt and patch."},
+// 	{1, test_debug_kprobe_patch, "Test Kprobe Patch."},
+// 	{2, test_debug_fpb_patch, "Test FPB Flash Patch."}
 // };
 
-// cli for dynamic patch points
-static struct cli_cmd cmds[] = {
-	{0, reset_patch, "Clear all bpkt and patch."},
-	{1, test_debug_kprobe_patch, "Test Kprobe Patch."},
-	{2, test_debug_fpb_patch, "Test FPB Flash Patch."}
-};
+// #endif
+
 
 static void cli_print_help() {
 	int ncmd = sizeof(cmds) / sizeof(struct cli_cmd);

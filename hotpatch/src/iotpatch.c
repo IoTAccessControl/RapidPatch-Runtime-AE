@@ -12,7 +12,7 @@ patch_context pctx;
 
 static void update_bits_filter() {
 	pctx.fbits_filter = 0;
-	DEBUG_LOG("fixed patch size: %d\n", pctx.fpatch_list.fiexed_patches->cur_size);
+	// DEBUG_LOG("fixed patch size: %d\n", pctx.fpatch_list.fiexed_patches->cur_size);
 	for (int i = 0; i < pctx.fpatch_list.fiexed_patches->cur_size; i++) {
 		const ebpf_patch *patch = arraymap_iter_val(pctx.fpatch_list.fiexed_patches, i);
 		if (patch != NULL && patch->is_active) {
@@ -110,7 +110,7 @@ void init_patch_sys(void) {
 	// const int init_size = 8;
 	memset(&pctx, 0, sizeof(pctx));
 	pctx.fpatch_list.fiexed_patches = arraymap_new(4);
-	DEBUG_LOG("set bit: %d\n", pctx.fpatch_list.fiexed_patches->cur_size);
+	// DEBUG_LOG("set bit: %d\n", pctx.fpatch_list.fiexed_patches->cur_size);
 	update_bits_filter();
 	ctx_init = true;
 }
