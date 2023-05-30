@@ -34,7 +34,7 @@ https://gcc.gnu.org/onlinedocs/gcc/_005f_005fatomic-Builtins.html
 //}
 
 
-static void arch_irq_lock(void) {
+static void my_arch_irq_lock(void) {
 	unsigned int tmp;
 	
 	// __asm__ volatile(

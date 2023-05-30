@@ -72,9 +72,9 @@ static void trigger_dummy_cve2(void) {
 
 #ifdef ZEPHYR_OS
 #include <zephyr.h>
-#include <misc/printk.h>
+#include <sys/printk.h>
 #include <net/coap.h>
-#include <gpio.h>
+#include <drivers/gpio.h>
 
 static void zephyr_cve_2020_10063(void)
 {
@@ -119,7 +119,7 @@ static void user(void *p1, void *p2, void *p3) {
 	print_control("user");
 	api.enable_callback = (void*)escalate;
 	port.driver_api = &api;
-	gpio_enable_callback(&port, 0, 0);
+	// gpio_enable_callback(&port, 0, 0);
 }
 
 static void zephyr_cve_2020_10028(void) {

@@ -141,7 +141,6 @@ static struct local_patch patch_list[] = {};
 
 #ifdef ZEPHYR_OS
 #include <zephyr.h>
-#include <misc/printk.h>
 #include <net/coap.h>
 
 // extern int packet_length_decode(struct buf_ctx *buf, u32_t *length);

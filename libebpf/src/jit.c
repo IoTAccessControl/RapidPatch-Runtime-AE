@@ -35,6 +35,7 @@ jit_mem* jit_mem_allocate(int insts_num) {
 	mem->jmp_offsets = ebpf_malloc(offset_size);
 	memset(mem->jit_code, 0, mem->code_size);
 	memset(mem->jmp_offsets, 0, offset_size);
+	return mem;
 }
 
 void jit_mem_free(jit_mem *mem) {

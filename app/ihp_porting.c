@@ -99,8 +99,8 @@ void log_print_porting(const char *fmt, va_list *args) {
 
 #ifdef ZEPHYR_OS
 #include <zephyr.h>
-#include <misc/printk.h>
-#include <console.h>
+#include <sys/printk.h>
+//#include <console.h>
 
 #pragma message("USE ZEPHYR_OS print-----------------------")
 
